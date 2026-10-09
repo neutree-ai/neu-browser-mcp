@@ -1,5 +1,5 @@
 {
-  "name": "@neutree-ai/neu-browser-mcp",
+  "name": "neu-browser-mcp",
   "version": "0.1.0",
   "description": "MCP server for remote browser sessions, with pluggable browser backends",
   "type": "module",
@@ -20,8 +20,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
-    "test": "vitest run",
-    "prepublishOnly": "npm run build"
+    "test": "vitest run --dir test",
+    "prepublishOnly": "npm run build",
+    "smoke": "vitest run --dir smoke --test-timeout 180000"
   },
   "keywords": ["mcp", "browser", "cdp", "ai-agent"],
   "license": "Apache-2.0",
@@ -30,7 +31,7 @@
     "url": "git+https://github.com/neutree-ai/neu-browser-mcp.git"
   },
   "engines": {
-    "node": ">=24"
+    "node": ">=22"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "^2.3.1",

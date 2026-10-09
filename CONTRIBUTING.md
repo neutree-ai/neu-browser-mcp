@@ -33,13 +33,32 @@ Requires Node.js 24 (the current LTS) or newer. The project uses **npm**, **[Bio
 npm install
 npx tsc --noEmit          # type-check
 npx biome check .         # lint + format
-npm test                  # unit tests
+npm test                  # unit tests, no network
 npm run build             # bundle + type declarations into dist/
 ```
 
 ## Adding a browser backend
 
-A backend is one file in `src/providers/` that returns a `BrowserProvider` (see `src/types.ts`). Before opening a PR for a new one, please open an issue: the tool surface is shared by every backend, so we want to agree on how the backend's sessions map onto it first.
+Backends are community-maintained: the maintainers run `nap`, and a backend for a hosted browser service is welcome from anyone with an account there.
+
+A backend is one file in `src/providers/` that returns a `BrowserProvider` (see `src/types.ts`), plus a `case` in `src/env.ts` so the standalone server can select it. Declare in `capabilities` only what the service really does; the tools adapt to the declaration.
+
+A backend PR needs:
+
+- Unit tests with a stubbed `fetch`, like `test/nap.test.ts`.
+- A passing smoke run against the real service, with the output pasted in the PR. Maintainers cannot run it for you, since CI holds no credentials for hosted services.
+- A row in the README's Backends table and its variables under "Run it as a server".
+
+### Smoke test
+
+`npm run smoke` creates one real browser on the backend selected by the environment, checks that it answers over CDP, lists it, lists its files if the backend has file access, and releases it. It uses a five-minute timeout, so a run costs a few minutes of browser time at most.
+
+```bash
+NEU_BROWSER_BACKEND=nap \
+NAP_BROWSER_URL=https://browser.example.com \
+NAP_BROWSER_TOKEN=<token> \
+npm run smoke
+```
 
 ## Commit and PR conventions
 

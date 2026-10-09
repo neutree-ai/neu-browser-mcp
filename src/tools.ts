@@ -179,7 +179,7 @@ Each item includes the same connection info as create_browser (${listedInfo ? `$
     {
       title: 'List Browser Files',
       description: `List files inside the browser sandbox.
-Defaults to ${files.defaultPath} — the conventional directory agents configure via CDP \`Browser.setDownloadBehavior\`.
+Defaults to ${files.defaultPath} — point downloads there first, via CDP \`Browser.setDownloadBehavior\` with \`downloadPath: "${files.defaultPath}"\`.
 Use after a download completes to discover what was saved. The browser sandbox is ephemeral, so files only exist while the browser is alive.
 There can be a brief delay between CDP \`downloadProgress\` reporting "completed" and the file being readable; if a file looks truncated, retry after a moment.`,
       inputSchema: z.object({
@@ -207,7 +207,7 @@ Returns the URL alongside the current file state — use \`ready: true\` to conf
 Files are only available while the browser is alive.`,
       inputSchema: z.object({
         browser_id: z.string().describe('ID of the browser'),
-        path: z.string().describe('Full file path (e.g. /downloads/foo.pdf)'),
+        path: z.string().describe(`Full file path (e.g. ${files.defaultPath}/foo.pdf)`),
       }),
     },
     async ({ browser_id, path }) => {

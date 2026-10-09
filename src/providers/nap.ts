@@ -180,7 +180,9 @@ export function createNapProvider(config: NapProviderConfig): BrowserProvider {
     },
 
     files: {
-      defaultPath: '/downloads',
+      // The browser's user cannot create a directory at the filesystem root, so a
+      // download aimed there is cancelled; /tmp is writable.
+      defaultPath: '/tmp/downloads',
 
       async list(sessionId: string, path: string, pattern?: string): Promise<BrowserFile[]> {
         const params = new URLSearchParams({ path })

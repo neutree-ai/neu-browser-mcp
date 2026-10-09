@@ -20,7 +20,7 @@ It does not click, type or navigate. The agent drives the browser itself over CD
 | `create_browser` | Starts a browser and returns `browser_id`, `connect_url` (CDP WebSocket), `connect_command` (a ready-to-run `agent-browser connect …`), `cdp_url` (CDP over HTTP, for Playwright's `connectOverCDP`) and `live_view_url`. Takes an optional `timeout_seconds`. |
 | `list_browsers` | Lists active browsers with the same connection info, so an agent can reconnect to one it lost track of. |
 | `delete_browser` | Stops a browser. |
-| `list_browser_files` | Lists files in the browser's sandbox, `/downloads` by default. |
+| `list_browser_files` | Lists files in the browser's sandbox, the backend's download directory by default. |
 | `get_browser_file_url` | Returns a download URL for one file, or `ready: false` if it is not there yet. |
 
 The two file tools are registered only when the backend offers file access.
@@ -37,14 +37,14 @@ More backends are planned. See [Adding a backend](#adding-a-backend).
 
 ## Run it as a server
 
-Requires Node.js 24 (the current LTS) or newer. The server speaks MCP over stdio.
+Requires Node.js 22 or newer. The server speaks MCP over stdio.
 
 ```json
 {
   "mcpServers": {
     "browser": {
       "command": "npx",
-      "args": ["-y", "@neutree-ai/neu-browser-mcp"],
+      "args": ["-y", "neu-browser-mcp"],
       "env": {
         "NEU_BROWSER_BACKEND": "nap",
         "NAP_BROWSER_URL": "https://browser.example.com",
@@ -71,7 +71,7 @@ To add the tools to an MCP server you already run, register them on it:
 
 ```ts
 import { McpServer } from '@modelcontextprotocol/server'
-import { createNapProvider, registerBrowserTools } from '@neutree-ai/neu-browser-mcp'
+import { createNapProvider, registerBrowserTools } from 'neu-browser-mcp'
 
 const server = new McpServer({ name: 'my-server', version: '1.0.0' })
 
