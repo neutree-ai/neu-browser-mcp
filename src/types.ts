@@ -30,13 +30,25 @@ export interface BrowserFile {
   modifiedAt?: string
 }
 
-/** Access to files the browser wrote, such as downloads. */
+/**
+ * Access to files the browser wrote, such as downloads. Listing is the base;
+ * `downloadUrl` and `read` are separate, optional ways to get at a file, and a
+ * backend offers whichever it really has.
+ */
 export interface BrowserFiles {
   /** Directory listed when the caller gives no path. */
   readonly defaultPath: string
   list(sessionId: string, path: string, pattern?: string): Promise<BrowserFile[]>
-  /** A URL that downloads the file without further credentials. */
-  downloadUrl(sessionId: string, path: string): Promise<string>
+  /**
+   * A URL that downloads the file without further credentials, for handing to
+   * a user. Only for backends that can issue one.
+   */
+  downloadUrl?(sessionId: string, path: string): Promise<string>
+  /**
+   * Fetch the file's contents, with the backend's credentials added, for
+   * returning to the agent.
+   */
+  read?(sessionId: string, path: string): Promise<Response>
 }
 
 /**
@@ -45,8 +57,11 @@ export interface BrowserFiles {
  * cannot honor. File access is declared by the presence of `files`.
  */
 export interface ProviderCapabilities {
-  /** Session lifetime when the caller gives none, and the longest it may ask for. */
-  timeout: { defaultSeconds: number; maxSeconds: number }
+  /**
+   * Session lifetime when the caller gives none, and the longest it may ask
+   * for. `absolute` counts from creation; `idle` counts time with no activity.
+   */
+  timeout: { kind: 'absolute' | 'idle'; defaultSeconds: number; maxSeconds: number }
   /** Sessions carry a `liveViewUrl` a human can open. */
   liveView: boolean
   /** Sessions carry a `cdpUrl`, a CDP endpoint over HTTP next to the WebSocket one. */

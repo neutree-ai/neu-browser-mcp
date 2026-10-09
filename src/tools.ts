@@ -22,6 +22,15 @@ function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e)
 }
 
+// A file read lands in the agent's context, so it is capped well below what a
+// backend would serve.
+const READ_LIMIT_BYTES = 256 * 1024
+const READ_LIMIT_LABEL = '256 KB'
+
+function tooLarge(path: string, bytes: number): string {
+  return `Error reading file: ${path} is ${bytes} bytes, over the ${READ_LIMIT_LABEL} limit`
+}
+
 function connectInfo(session: BrowserSession) {
   return {
     cdp_url: session.cdpUrl,
@@ -42,7 +51,7 @@ function duration(seconds: number): string {
   return `${n} ${unit}${n === 1 ? '' : 's'}`
 }
 
-type ToolResult = ReturnType<typeof textResult> | ReturnType<typeof errorResult>
+type ToolResult = { content: unknown[]; isError?: true }
 
 /**
  * The part of an MCP server the tools need. It is declared here with loose
@@ -80,6 +89,11 @@ export function registerBrowserTools(
       : []),
     ...(liveView ? ['- live_view_url: share with the user so they can watch.'] : []),
   ].join('\n')
+  const limits = `(default ${duration(timeout.defaultSeconds)}, max ${duration(timeout.maxSeconds)})`
+  const expiry =
+    timeout.kind === 'idle'
+      ? `The browser is reclaimed once it has been idle for the timeout ${limits}.`
+      : `The browser auto-expires after the timeout ${limits}.`
   const listedInfo = [...(httpCdp ? ['cdp_url'] : []), ...(liveView ? ['live_view_url'] : [])].join(
     ', ',
   )
@@ -91,7 +105,7 @@ export function registerBrowserTools(
       description: `Create a headless Chrome browser instance.
 Returns browser_id plus connection info:
 ${connectionInfo}
-The browser auto-expires after the timeout (default ${duration(timeout.defaultSeconds)}, max ${duration(timeout.maxSeconds)}).`,
+${expiry}`,
       inputSchema: z.object({
         timeout_seconds: z
           .number()
@@ -198,40 +212,92 @@ There can be a brief delay between CDP \`downloadProgress\` reporting "completed
     },
   )
 
-  registerTool(
-    'get_browser_file_url',
-    {
-      title: 'Get Browser File Download URL',
-      description: `Get a download URL for a file inside the browser sandbox.
-Returns the URL alongside the current file state — use \`ready: true\` to confirm the file exists. The URL embeds an auth token and can be handed to the user (e.g. as a clickable link in chat) or fetched directly.
-Files are only available while the browser is alive.`,
-      inputSchema: z.object({
-        browser_id: z.string().describe('ID of the browser'),
-        path: z.string().describe(`Full file path (e.g. ${files.defaultPath}/foo.pdf)`),
-      }),
-    },
-    async ({ browser_id, path }) => {
-      try {
-        const lastSlash = path.lastIndexOf('/')
-        const dir = lastSlash > 0 ? path.slice(0, lastSlash) : '/'
-        const name = lastSlash >= 0 ? path.slice(lastSlash + 1) : path
-        const list = await files.list(browser_id, dir, name)
-        const match = list.find((f) => f.path === path)
-        if (!match) {
-          return textResult(JSON.stringify({ ready: false, path }))
+  const downloadUrl = files.downloadUrl?.bind(files)
+  if (downloadUrl) {
+    registerTool(
+      'get_browser_file_url',
+      {
+        title: 'Get Browser File Download URL',
+        description: `Get a download URL for a file inside the browser sandbox.
+  Returns the URL alongside the current file state — use \`ready: true\` to confirm the file exists. The URL embeds an auth token and can be handed to the user (e.g. as a clickable link in chat) or fetched directly.
+  Files are only available while the browser is alive.`,
+        inputSchema: z.object({
+          browser_id: z.string().describe('ID of the browser'),
+          path: z.string().describe(`Full file path (e.g. ${files.defaultPath}/foo.pdf)`),
+        }),
+      },
+      async ({ browser_id, path }) => {
+        try {
+          const lastSlash = path.lastIndexOf('/')
+          const dir = lastSlash > 0 ? path.slice(0, lastSlash) : '/'
+          const name = lastSlash >= 0 ? path.slice(lastSlash + 1) : path
+          const list = await files.list(browser_id, dir, name)
+          const match = list.find((f) => f.path === path)
+          if (!match) {
+            return textResult(JSON.stringify({ ready: false, path }))
+          }
+          return textResult(
+            JSON.stringify({
+              ready: true,
+              url: await downloadUrl(browser_id, path),
+              path,
+              size: match.size,
+              modified_at: match.modifiedAt,
+            }),
+          )
+        } catch (e) {
+          return errorResult(`Error resolving file URL: ${message(e)}`)
         }
-        return textResult(
-          JSON.stringify({
-            ready: true,
-            url: await files.downloadUrl(browser_id, path),
-            path,
-            size: match.size,
-            modified_at: match.modifiedAt,
-          }),
-        )
-      } catch (e) {
-        return errorResult(`Error resolving file URL: ${message(e)}`)
-      }
-    },
-  )
+      },
+    )
+  }
+
+  const read = files.read?.bind(files)
+  if (read) {
+    registerTool(
+      'read_browser_file',
+      {
+        title: 'Read Browser File',
+        description: `Read a file inside the browser sandbox and return its contents.
+Text comes back as text; anything else comes back as a base64 resource. Files over ${READ_LIMIT_LABEL} are refused — check the size with list_browser_files first.
+Files are only available while the browser is alive.`,
+        inputSchema: z.object({
+          browser_id: z.string().describe('ID of the browser'),
+          path: z.string().describe(`Full file path (e.g. ${files.defaultPath}/foo.pdf)`),
+        }),
+      },
+      async ({ browser_id, path }) => {
+        try {
+          const res = await read(browser_id, path)
+          const declared = Number(res.headers.get('content-length'))
+          if (declared > READ_LIMIT_BYTES) {
+            await res.body?.cancel()
+            return errorResult(tooLarge(path, declared))
+          }
+          const bytes = new Uint8Array(await res.arrayBuffer())
+          if (bytes.byteLength > READ_LIMIT_BYTES)
+            return errorResult(tooLarge(path, bytes.byteLength))
+
+          try {
+            return textResult(new TextDecoder('utf-8', { fatal: true }).decode(bytes))
+          } catch {
+            return {
+              content: [
+                {
+                  type: 'resource' as const,
+                  resource: {
+                    uri: `browser-file://${browser_id}${path}`,
+                    mimeType: res.headers.get('content-type') ?? 'application/octet-stream',
+                    blob: Buffer.from(bytes).toString('base64'),
+                  },
+                },
+              ],
+            }
+          }
+        } catch (e) {
+          return errorResult(`Error reading file: ${message(e)}`)
+        }
+      },
+    )
+  }
 }

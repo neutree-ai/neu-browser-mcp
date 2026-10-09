@@ -8,7 +8,7 @@ import type { BrowserProvider } from '../src/types'
 const provider: BrowserProvider = {
   name: 'stub',
   capabilities: {
-    timeout: { defaultSeconds: 3600, maxSeconds: 86400 },
+    timeout: { kind: 'absolute', defaultSeconds: 3600, maxSeconds: 86400 },
     liveView: true,
     httpCdp: true,
     metadata: true,

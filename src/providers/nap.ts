@@ -131,7 +131,7 @@ export function createNapProvider(config: NapProviderConfig): BrowserProvider {
     name: 'nap',
 
     capabilities: {
-      timeout: { defaultSeconds: 3600, maxSeconds: 86400 },
+      timeout: { kind: 'absolute', defaultSeconds: 3600, maxSeconds: 86400 },
       liveView: true,
       httpCdp: true,
       metadata: true,

@@ -22,8 +22,12 @@ It does not click, type or navigate. The agent drives the browser itself over CD
 | `delete_browser` | Stops a browser. |
 | `list_browser_files` | Lists files in the browser's sandbox, the backend's download directory by default. |
 | `get_browser_file_url` | Returns a download URL for one file, or `ready: false` if it is not there yet. |
+| `read_browser_file` | Returns the contents of one file: text as text, anything else as a base64 resource. |
 
-The two file tools are registered only when the backend offers file access.
+The file tools follow what the backend offers. Listing is the base. Getting at a file comes in two separate forms, and a backend exposes whichever it really has:
+
+- **A download link** (`get_browser_file_url`), for handing to a user. Only backends that can issue a link needing no credentials have it.
+- **Reading the contents** (`read_browser_file`), returned to the agent. The server reads the file with the backend's credentials, so they never reach the agent. Reads are capped at 256 KB.
 
 ## Backends
 
@@ -31,7 +35,8 @@ Each backend declares what it supports, and the tools follow the declaration.
 
 | Backend | Timeout (default / max) | Live view | CDP over HTTP | Metadata | Files | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| `nap` | 1 hour / 24 hours | yes | yes | yes | yes | The self-hosted browser service of [Neutree Agent Platform](https://github.com/neutree-ai/agent-platform). |
+| `nap` | 1 hour / 24 hours | yes | yes | yes | list, download link | The self-hosted browser service of [Neutree Agent Platform](https://github.com/neutree-ai/agent-platform). |
+| `kernel` | 1 hour idle / 72 hours idle | yes | no | yes | list, read | [Kernel](https://www.kernel.sh) hosted browsers. The timeout counts inactivity, not time since creation. |
 
 More backends are planned. See [Adding a backend](#adding-a-backend).
 
@@ -64,6 +69,12 @@ Requires Node.js 22 or newer. The server speaks MCP over stdio.
 | `NAP_BROWSER_URL` | Base URL of the browser service API. Required. |
 | `NAP_BROWSER_TOKEN` | Bearer token for the browser service. Required. |
 | `NAP_BROWSER_PUBLIC_URL` | Base URL used in file download links. Set it when `NAP_BROWSER_URL` is an internal address users cannot reach. Defaults to `NAP_BROWSER_URL`. |
+
+**`kernel`**
+
+| Variable | Meaning |
+| --- | --- |
+| `KERNEL_API_KEY` | Kernel API key. Required. |
 
 ## Use it as a library
 
@@ -100,11 +111,11 @@ interface BrowserProvider {
   createSession(opts?: CreateSessionOptions): Promise<BrowserSession>
   listSessions(opts?: ListSessionsOptions): Promise<BrowserSession[]>
   releaseSession(id: string): Promise<void>
-  readonly files?: BrowserFiles
+  readonly files?: BrowserFiles // list, and optionally downloadUrl and read
 }
 
 interface ProviderCapabilities {
-  timeout: { defaultSeconds: number; maxSeconds: number }
+  timeout: { kind: 'absolute' | 'idle'; defaultSeconds: number; maxSeconds: number }
   liveView: boolean
   httpCdp: boolean
   metadata: boolean
@@ -115,11 +126,13 @@ The required part is the session lifecycle plus a CDP WebSocket URL. Everything 
 
 | Declaration | Effect when absent |
 | --- | --- |
-| `timeout` | Always present. Sets the default and maximum the agent is told about. |
+| `timeout` | Always present. Sets the default and maximum the agent is told about, and whether the timeout counts from creation (`absolute`) or inactivity (`idle`). |
 | `liveView` | `live_view_url` is null and the tool descriptions do not mention it. |
 | `httpCdp` | `cdp_url` is null, and the agent is told to use `connect_url` with Playwright too. |
 | `metadata` | `registerBrowserTools` throws if a `scope` is given, since the backend could not keep tenants apart. |
-| `files` member | `list_browser_files` and `get_browser_file_url` are not registered. |
+| `files` member | No file tools are registered. |
+| `files.downloadUrl` | `get_browser_file_url` is not registered. |
+| `files.read` | `read_browser_file` is not registered. |
 
 [`src/providers/nap.ts`](src/providers/nap.ts) is the reference implementation.
 

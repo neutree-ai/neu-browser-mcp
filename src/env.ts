@@ -1,3 +1,4 @@
+import { createKernelProvider } from './providers/kernel'
 import { createNapProvider } from './providers/nap'
 import type { BrowserProvider } from './types'
 
@@ -22,7 +23,9 @@ export function providerFromEnv(env: Env): BrowserProvider {
         token: required(env, backend, 'NAP_BROWSER_TOKEN'),
         publicBaseUrl: env.NAP_BROWSER_PUBLIC_URL,
       })
+    case 'kernel':
+      return createKernelProvider({ apiKey: required(env, backend, 'KERNEL_API_KEY') })
     default:
-      throw new Error(`Unknown NEU_BROWSER_BACKEND "${backend}". Supported: nap`)
+      throw new Error(`Unknown NEU_BROWSER_BACKEND "${backend}". Supported: nap, kernel`)
   }
 }

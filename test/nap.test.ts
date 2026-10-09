@@ -152,7 +152,7 @@ describe('nap provider', () => {
     )
 
     const files = await p.files?.list('b1', '/downloads', '*.pdf')
-    const url = await p.files?.downloadUrl('b1', '/downloads/a.pdf')
+    const url = await p.files?.downloadUrl?.('b1', '/downloads/a.pdf')
 
     expect(calls[0].url.search).toBe('?path=%2Fdownloads&pattern=*.pdf')
     expect(calls[0].auth).toBe('Bearer lazy tok')
