@@ -46,6 +46,7 @@ Requires Node.js 24 (the current LTS) or newer. The server speaks MCP over stdio
       "command": "npx",
       "args": ["-y", "@neutree-ai/neu-browser-mcp"],
       "env": {
+        "NEU_BROWSER_BACKEND": "nap",
         "NAP_BROWSER_URL": "https://browser.example.com",
         "NAP_BROWSER_TOKEN": "<token>"
       }
@@ -53,6 +54,10 @@ Requires Node.js 24 (the current LTS) or newer. The server speaks MCP over stdio
   }
 }
 ```
+
+`NEU_BROWSER_BACKEND` picks the backend and defaults to `nap`. Each backend then reads its own variables.
+
+**`nap`**
 
 | Variable | Meaning |
 | --- | --- |

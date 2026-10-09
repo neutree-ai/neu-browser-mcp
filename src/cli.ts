@@ -1,22 +1,18 @@
 #!/usr/bin/env node
 import { McpServer } from '@modelcontextprotocol/server'
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
-import { createNapProvider } from './providers/nap'
+import { providerFromEnv } from './env'
 import { registerBrowserTools } from './tools'
+import type { BrowserProvider } from './types'
 
-const baseUrl = process.env.NAP_BROWSER_URL
-const token = process.env.NAP_BROWSER_TOKEN
-if (!baseUrl || !token) {
-  console.error('neu-browser-mcp: set NAP_BROWSER_URL and NAP_BROWSER_TOKEN')
+let provider: BrowserProvider
+try {
+  provider = providerFromEnv(process.env)
+} catch (e) {
+  console.error(`neu-browser-mcp: ${e instanceof Error ? e.message : e}`)
   process.exit(1)
 }
 
 const server = new McpServer({ name: 'neu-browser-mcp', version: '0.1.0' })
-registerBrowserTools(server, {
-  provider: createNapProvider({
-    baseUrl,
-    token,
-    publicBaseUrl: process.env.NAP_BROWSER_PUBLIC_URL,
-  }),
-})
+registerBrowserTools(server, { provider })
 await server.connect(new StdioServerTransport())
