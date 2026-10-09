@@ -1,0 +1,48 @@
+{
+  "name": "@neutree-ai/neu-browser-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for remote browser sessions, with pluggable browser backends",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "neu-browser-mcp": "./dist/cli.js"
+  },
+  "files": ["dist", "README.md", "LICENSE", "NOTICE"],
+  "scripts": {
+    "build": "esbuild src/index.ts src/cli.ts --bundle --format=esm --platform=node --target=node24 --outdir=dist --packages=external && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["mcp", "browser", "cdp", "ai-agent"],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neutree-ai/neu-browser-mcp.git"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@modelcontextprotocol/client": "^2.3.1",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@types/node": "^25.6.0",
+    "esbuild": "^0.28.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.4"
+  }
+}
