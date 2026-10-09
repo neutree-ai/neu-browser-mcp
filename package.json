@@ -1,6 +1,6 @@
 {
   "name": "neu-browser-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for remote browser sessions, with pluggable browser backends",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,7 +14,12 @@
   "bin": {
     "neu-browser-mcp": "./dist/cli.js"
   },
-  "files": ["dist", "README.md", "LICENSE", "NOTICE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
   "scripts": {
     "build": "esbuild src/index.ts src/cli.ts --bundle --format=esm --platform=node --target=node24 --outdir=dist --packages=external && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
@@ -24,7 +29,12 @@
     "prepublishOnly": "npm run build",
     "smoke": "vitest run --dir smoke --test-timeout 180000"
   },
-  "keywords": ["mcp", "browser", "cdp", "ai-agent"],
+  "keywords": [
+    "mcp",
+    "browser",
+    "cdp",
+    "ai-agent"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
