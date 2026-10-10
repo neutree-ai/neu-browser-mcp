@@ -74,7 +74,7 @@ describe('nap provider', () => {
       expiresAt: 'E',
       connectUrl: 'wss://browser.example.com/cdp/b1/devtools/browser/x?token=tok',
       cdpUrl: 'https://browser.example.com/cdp/b1?token=tok',
-      liveViewUrl: 'https://browser.example.com/live/b1/?token=tok',
+      liveViewUrl: 'https://browser.example.com/live/t/tok/b1/?usr=admin&pwd=admin',
     })
   })
 

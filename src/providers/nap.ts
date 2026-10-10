@@ -106,14 +106,25 @@ export function createNapProvider(config: NapProviderConfig): BrowserProvider {
     )
   }
 
+  // The live view is a page that loads its own scripts and opens a WebSocket.
+  // A token in the query string covers only the page itself, so the token goes
+  // in the path, where every request the page makes carries it. The page signs
+  // in to the viewer with the browser image's fixed viewer account.
+  function liveViewWithToken(api: ApiSession, token: string): string {
+    const url = new URL(api.endpoints?.live_view as string)
+    url.pathname = url.pathname.replace(/\/live\//, `/live/t/${token}/`)
+    url.search = '?usr=admin&pwd=admin'
+    return url.toString()
+  }
+
   async function toSession(
     api: ApiSession,
     status: string,
     resolveTimeoutMs: number,
   ): Promise<BrowserSession> {
-    const qs = `?token=${encodeURIComponent(await getToken())}`
-    const cdpUrl = api.endpoints?.cdp ? `${api.endpoints.cdp}${qs}` : null
-    const liveViewUrl = api.endpoints?.live_view ? `${api.endpoints.live_view}${qs}` : null
+    const token = encodeURIComponent(await getToken())
+    const cdpUrl = api.endpoints?.cdp ? `${api.endpoints.cdp}?token=${token}` : null
+    const liveViewUrl = api.endpoints?.live_view ? liveViewWithToken(api, token) : null
     const running = status === 'running'
     return {
       id: api.id,
