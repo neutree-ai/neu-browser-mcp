@@ -13,6 +13,6 @@ try {
   process.exit(1)
 }
 
-const server = new McpServer({ name: 'neu-browser-mcp', version: '0.2.1' })
+const server = new McpServer({ name: 'neu-browser-mcp', version: '0.2.2' })
 registerBrowserTools(server, { provider })
 await server.connect(new StdioServerTransport())
