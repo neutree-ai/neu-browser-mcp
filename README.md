@@ -33,12 +33,12 @@ The file tools follow what the backend offers. Listing is the base. Getting at a
 
 Each backend declares what it supports, and the tools follow the declaration.
 
-| Backend | Timeout (default / max) | Live view | CDP over HTTP | Metadata | Files | Notes |
-| --- | --- | --- | --- | --- | --- | --- |
-| `nap` | 1 hour / 24 hours | yes | yes | yes | list, download link | The self-hosted browser service of [Neutree Agent Platform](https://github.com/neutree-ai/agent-platform). |
-| `kernel` | 1 hour idle / 72 hours idle | yes | no | yes | list, read | [Kernel](https://www.kernel.sh) hosted browsers. The timeout counts inactivity, not time since creation. |
-| `browser-use` | 1 hour / 4 hours | yes | yes | yes | no | [Browser Use Cloud](https://browser-use.com) hosted browsers. Up to 10 metadata pairs per browser. |
-| `hyperbrowser` | 1 hour / 12 hours | yes | no | no | no | [Hyperbrowser](https://hyperbrowser.ai) hosted browsers. No metadata, so it cannot be confined to a scope. |
+| Backend | Timeout (default / max) | Live view | CDP over HTTP | Metadata | List files | Download link | Read file |
+| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
+| [`nap`](https://github.com/neutree-ai/agent-platform) | 1 hour / 24 hours | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| [`kernel`](https://www.kernel.sh) | 1 hour idle / 72 hours idle | ✅ | ❌ | ✅ | ✅ | ❌ | ✅ |
+| [`browser-use`](https://browser-use.com) | 1 hour / 4 hours | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| [`hyperbrowser`](https://hyperbrowser.ai) | 1 hour / 12 hours | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
 More backends are planned. See [Adding a backend](#adding-a-backend).
 
