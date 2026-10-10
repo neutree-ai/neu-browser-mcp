@@ -37,6 +37,8 @@ npm test                  # unit tests, no network
 npm run build             # bundle + type declarations into dist/
 ```
 
+`npm install` sets up a pre-commit hook that lints the staged files and type-checks, the same checks CI runs.
+
 ## Adding a browser backend
 
 Backends are community-maintained: the maintainers run `nap`, and a backend for a hosted browser service is welcome from anyone with an account there.

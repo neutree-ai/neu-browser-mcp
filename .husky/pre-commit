@@ -1,0 +1,7 @@
+#!/bin/sh
+# Fast local gate, mirroring CI: lint and format the staged files, then type-check.
+
+set -e
+
+npx biome check --staged --no-errors-on-unmatched
+npx tsc --noEmit
