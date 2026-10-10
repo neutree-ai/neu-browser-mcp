@@ -112,7 +112,9 @@ registerBrowserTools(server, {
 
 The server can come from either generation of the MCP TypeScript SDK: `@modelcontextprotocol/server` (v2) or `@modelcontextprotocol/sdk` (v1).
 
-`scope` is a set of tags that confines the tools to one tenant. Every browser they create carries the tags, and `list_browsers` returns only browsers that carry them. `token` can be a string or an async function; a function is called once, on first use.
+`scope` is a set of tags that confines the tools to one tenant. Every browser they create carries the tags, `list_browsers` returns only browsers that carry them, and a tool given a browser ID refuses it unless that browser carries them. This is what keeps tenants apart when they share the backend's credentials. `token` can be a string or an async function; a function is called once, on first use.
+
+To pick the backend from the environment, the way the standalone server does, use `providerFromEnv(process.env)`.
 
 ## Adding a backend
 

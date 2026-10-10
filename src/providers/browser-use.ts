@@ -70,14 +70,14 @@ export function createBrowserUseProvider(config: BrowserUseProviderConfig): Brow
     }
   }
 
-  async function toSession(api: ApiBrowser): Promise<BrowserSession> {
+  async function toSession(api: ApiBrowser, connectInfo = true): Promise<BrowserSession> {
     const running = api.status === 'active'
     return {
       id: api.id,
       status: running ? 'running' : api.status,
       createdAt: api.startedAt,
       expiresAt: api.timeoutAt,
-      connectUrl: running ? await resolveConnectUrl(api.cdpUrl) : null,
+      connectUrl: running && connectInfo ? await resolveConnectUrl(api.cdpUrl) : null,
       cdpUrl: /^https?:\/\//.test(api.cdpUrl ?? '') ? api.cdpUrl : null,
       liveViewUrl: api.liveUrl,
     }
@@ -127,7 +127,7 @@ export function createBrowserUseProvider(config: BrowserUseProviderConfig): Brow
         items.push(...page.items)
         if (page.items.length === 0 || items.length >= page.totalItems) break
       }
-      return Promise.all(items.map(toSession))
+      return Promise.all(items.map((item) => toSession(item, opts?.connectInfo !== false)))
     },
 
     async releaseSession(id: string): Promise<void> {

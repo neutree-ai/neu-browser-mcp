@@ -1,3 +1,4 @@
+export { providerFromEnv } from './env'
 export { createBrowserUseProvider } from './providers/browser-use'
 export type { BrowserUseProviderConfig } from './providers/browser-use'
 export { createHyperbrowserProvider } from './providers/hyperbrowser'

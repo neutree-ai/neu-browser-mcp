@@ -119,6 +119,27 @@ describe('nap provider', () => {
     ])
   })
 
+  it('lists without resolving connection info when only identity is wanted', async () => {
+    const { provider: p, calls } = provider(() => ({
+      items: [{ id: 'b1', status: 'Running', expires_at: 'E', created_at: 'C' }],
+    }))
+
+    const sessions = await p.listSessions({ metadata: { ws: 'w1' }, connectInfo: false })
+
+    expect(sessions).toEqual([
+      {
+        id: 'b1',
+        status: 'running',
+        createdAt: 'C',
+        expiresAt: 'E',
+        connectUrl: null,
+        cdpUrl: null,
+        liveViewUrl: null,
+      },
+    ])
+    expect(calls).toHaveLength(1)
+  })
+
   it('releases a browser', async () => {
     const { provider: p, calls } = provider(() => ({ success: true }))
     await p.releaseSession('b1')

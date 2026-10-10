@@ -79,6 +79,21 @@ export function registerBrowserTools(
     )
   }
 
+  const scoped = scope && Object.keys(scope).length > 0
+
+  /**
+   * A browser ID alone proves nothing about who owns the browser: when several
+   * tenants share the backend's credentials, only the scope tells them apart.
+   * So every operation on an ID first checks that the ID is inside the scope.
+   */
+  async function assertInScope(browserId: string): Promise<void> {
+    if (!scoped) return
+    const sessions = await provider.listSessions({ metadata: scope, connectInfo: false })
+    if (!sessions.some((session) => session.id === browserId)) {
+      throw new Error(`Browser ${browserId} not found`)
+    }
+  }
+
   const connectionInfo = [
     '- connect_command: a ready-to-run agent-browser command — just run it as-is to start driving the browser.',
     httpCdp
@@ -177,6 +192,7 @@ Each item includes the same connection info as create_browser (${listedInfo ? `$
     },
     async ({ browser_id }) => {
       try {
+        await assertInScope(browser_id)
         await provider.releaseSession(browser_id)
         return textResult(`Browser ${browser_id} deleted`)
       } catch (e) {
@@ -204,6 +220,7 @@ There can be a brief delay between CDP \`downloadProgress\` reporting "completed
     },
     async ({ browser_id, path, pattern }) => {
       try {
+        await assertInScope(browser_id)
         const list = await files.list(browser_id, path ?? files.defaultPath, pattern)
         return textResult(JSON.stringify({ files: list }))
       } catch (e) {
@@ -228,6 +245,7 @@ There can be a brief delay between CDP \`downloadProgress\` reporting "completed
       },
       async ({ browser_id, path }) => {
         try {
+          await assertInScope(browser_id)
           const lastSlash = path.lastIndexOf('/')
           const dir = lastSlash > 0 ? path.slice(0, lastSlash) : '/'
           const name = lastSlash >= 0 ? path.slice(lastSlash + 1) : path
@@ -268,6 +286,7 @@ Files are only available while the browser is alive.`,
       },
       async ({ browser_id, path }) => {
         try {
+          await assertInScope(browser_id)
           const res = await read(browser_id, path)
           const declared = Number(res.headers.get('content-length'))
           if (declared > READ_LIMIT_BYTES) {

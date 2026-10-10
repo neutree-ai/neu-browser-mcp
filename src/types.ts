@@ -8,6 +8,11 @@ export interface CreateSessionOptions {
 export interface ListSessionsOptions {
   /** Only return sessions carrying every one of these tags. */
   metadata?: Record<string, string>
+  /**
+   * Set to false when only the sessions' identity matters. A backend may then
+   * skip the extra requests that resolve connection info and return it null.
+   */
+  connectInfo?: boolean
 }
 
 export interface BrowserSession {

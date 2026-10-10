@@ -115,6 +115,7 @@ export function createHyperbrowserProvider(config: HyperbrowserProviderConfig): 
         listed.push(...result.sessions)
         if (result.sessions.length === 0 || listed.length >= result.totalCount) break
       }
+      if (opts?.connectInfo === false) return listed.map(toSession)
       // The list carries no connection info, so read each session for it.
       return Promise.all(
         listed.map(async (item) =>

@@ -151,6 +151,61 @@ describe('browser tools', () => {
     expect(missing.content).toEqual([{ type: 'text', text: 'Error reading file: not found' }])
   })
 
+  it('refuses to act on a browser outside the scope, and checks nothing without a scope', async () => {
+    const acted: string[] = []
+    const lists: unknown[] = []
+    const { provider } = stubProvider({
+      async listSessions(opts) {
+        lists.push(opts)
+        return [running]
+      },
+      async releaseSession(id) {
+        acted.push(`release ${id}`)
+      },
+      files: {
+        defaultPath: '/d',
+        async list(id) {
+          acted.push(`list ${id}`)
+          return [{ path: '/d/a.txt', size: 1 }]
+        },
+        async downloadUrl(id) {
+          acted.push(`url ${id}`)
+          return 'https://x'
+        },
+        async read(id) {
+          acted.push(`read ${id}`)
+          return new Response('x')
+        },
+      },
+    })
+    const scoped = await connect(provider, { ws: 'w1' })
+    const byId = (browser_id: string) =>
+      [
+        ['delete_browser', { browser_id }],
+        ['list_browser_files', { browser_id }],
+        ['get_browser_file_url', { browser_id, path: '/d/a.txt' }],
+        ['read_browser_file', { browser_id, path: '/d/a.txt' }],
+      ] as const
+
+    for (const [name, args] of byId('other')) {
+      const result = await call(scoped, name, args)
+      expect(result.isError).toBe(true)
+      expect(result.text).toContain('Browser other not found')
+    }
+    expect(acted).toEqual([])
+    expect(lists).toEqual(Array(4).fill({ metadata: { ws: 'w1' }, connectInfo: false }))
+
+    for (const [name, args] of byId('b1')) {
+      expect((await call(scoped, name, args)).isError).toBe(false)
+    }
+    expect(acted).toEqual(['release b1', 'list b1', 'list b1', 'url b1', 'read b1'])
+
+    lists.length = 0
+    const unscoped = await connect(provider)
+    expect((await call(unscoped, 'delete_browser', { browser_id: 'other' })).isError).toBe(false)
+    expect(lists).toEqual([])
+  })
+
   it('describes the tools from what the provider declares', async () => {
     const describe = async (provider: BrowserProvider) => {
       const { tools } = await (await connect(provider)).listTools()

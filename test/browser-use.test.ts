@@ -101,6 +101,15 @@ describe('browser-use provider', () => {
     ])
   })
 
+  it('lists without resolving WebSocket URLs when only identity is wanted', async () => {
+    const { provider: p, calls } = provider(() => ({
+      body: { items: [browser('b1')], totalItems: 1 },
+    }))
+    const sessions = await p.listSessions({ connectInfo: false })
+    expect(sessions.map((s) => [s.id, s.connectUrl])).toEqual([['b1', null]])
+    expect(calls).toHaveLength(1)
+  })
+
   it('stops a browser, and surfaces API errors', async () => {
     const ok = provider(() => ({ body: browser('b1', { status: 'stopped' }) }))
     await ok.provider.releaseSession('b1')

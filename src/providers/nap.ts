@@ -165,6 +165,17 @@ export function createNapProvider(config: NapProviderConfig): BrowserProvider {
       const { items } = await request<{ items: ApiSession[] }>(`/api/browsers${qs ? `?${qs}` : ''}`)
       // The list response omits endpoints, so read each browser for them. A short
       // per-browser timeout keeps one stuck browser from stalling the list.
+      if (opts?.connectInfo === false) {
+        return items.map((item) => ({
+          id: item.id,
+          status: item.status.toLowerCase(),
+          createdAt: item.created_at,
+          expiresAt: item.expires_at,
+          connectUrl: null,
+          cdpUrl: null,
+          liveViewUrl: null,
+        }))
+      }
       return Promise.all(
         items.map(async (item) => {
           const detail = item.endpoints

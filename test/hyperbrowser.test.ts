@@ -94,6 +94,15 @@ describe('hyperbrowser provider', () => {
     ])
   })
 
+  it('lists without reading each session when only identity is wanted', async () => {
+    const { provider: p, calls } = provider(() => ({
+      body: { sessions: [{ id: 's1', status: 'active' }], totalCount: 1 },
+    }))
+    const sessions = await p.listSessions({ connectInfo: false })
+    expect(sessions.map((s) => [s.id, s.status, s.connectUrl])).toEqual([['s1', 'running', null]])
+    expect(calls).toHaveLength(1)
+  })
+
   it('stops a session, and surfaces API errors', async () => {
     const ok = provider(() => ({ body: { success: true } }))
     await ok.provider.releaseSession('s1')
