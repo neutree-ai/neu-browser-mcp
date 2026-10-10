@@ -2,16 +2,17 @@
 
 An MCP server that gives an agent a remote browser: create one, get a CDP URL to drive it, hand the user a live view, pick up the files it downloaded, and shut it down.
 
-The tools stay the same whichever backend hosts the browser. A backend is a small adapter behind one interface, so the agent's prompts and skills do not change when the browser moves.
-
 <p>
   <a href="LICENSE"><img alt="License: Apache 2.0" src="https://img.shields.io/badge/License-Apache_2.0-blue.svg"></a>
   <a href="CONTRIBUTING.md"><img alt="Contributions welcome" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
 </p>
 
-## What it is not
+## Why
 
-It does not click, type or navigate. The agent drives the browser itself over CDP, with [agent-browser](https://github.com/vercel-labs/agent-browser), Playwright, or any other CDP client. This server only owns the browser's lifecycle, so backend credentials stay on the server and never enter the agent's context.
+- **Lifecycle only.** It does not click, type or navigate. The agent drives the browser over CDP with [agent-browser](https://github.com/vercel-labs/agent-browser), Playwright, or any CDP client.
+- **Same tools on any backend.** Prompts and skills stay the same when the browser moves between `nap`, `kernel`, `browser-use` and `hyperbrowser`. Each backend is a small adapter behind one interface.
+- **Credentials stay on the server.** The backend token never enters the agent's context.
+- **Human handoff and downloads.** Backends with a live view give you a URL to watch or take over the browser. Files the browser downloads can be listed, linked, or read.
 
 ## Tools
 
@@ -22,16 +23,11 @@ It does not click, type or navigate. The agent drives the browser itself over CD
 | `delete_browser` | Stops a browser. |
 | `list_browser_files` | Lists files in the browser's sandbox, the backend's download directory by default. |
 | `get_browser_file_url` | Returns a download URL for one file, or `ready: false` if it is not there yet. |
-| `read_browser_file` | Returns the contents of one file: text as text, anything else as a base64 resource. |
-
-The file tools follow what the backend offers. Listing is the base. Getting at a file comes in two separate forms, and a backend exposes whichever it really has:
-
-- **A download link** (`get_browser_file_url`), for handing to a user. Only backends that can issue a link needing no credentials have it.
-- **Reading the contents** (`read_browser_file`), returned to the agent. The server reads the file with the backend's credentials, so they never reach the agent. Reads are capped at 256 KB.
+| `read_browser_file` | Returns the contents of one file: text as text, anything else as a base64 resource. The server reads with the backend's credentials. Reads are capped at 256 KB. |
 
 ## Backends
 
-Each backend declares what it supports, and the tools follow the declaration.
+A capability a backend lacks shows up as `null` or as a missing tool. See [Adding a backend](#adding-a-backend).
 
 | Backend | Timeout (default / max) | Live view | CDP over HTTP | Metadata | List files | Download link | Read file |
 | --- | --- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -40,7 +36,7 @@ Each backend declares what it supports, and the tools follow the declaration.
 | [`browser-use`](https://browser-use.com) | 1 hour / 4 hours | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
 | [`hyperbrowser`](https://hyperbrowser.ai) | 1 hour / 12 hours | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 
-More backends are planned. See [Adding a backend](#adding-a-backend).
+More backends are planned.
 
 ## Run it as a server
 
