@@ -1,5 +1,6 @@
 {
   "name": "neu-browser-mcp",
+  "mcpName": "io.github.neutree-ai/neu-browser-mcp",
   "version": "0.2.3",
   "description": "MCP server for remote browser sessions, with pluggable browser backends",
   "type": "module",
