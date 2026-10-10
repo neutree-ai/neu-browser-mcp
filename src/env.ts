@@ -1,3 +1,5 @@
+import { createBrowserUseProvider } from './providers/browser-use'
+import { createHyperbrowserProvider } from './providers/hyperbrowser'
 import { createKernelProvider } from './providers/kernel'
 import { createNapProvider } from './providers/nap'
 import type { BrowserProvider } from './types'
@@ -25,7 +27,15 @@ export function providerFromEnv(env: Env): BrowserProvider {
       })
     case 'kernel':
       return createKernelProvider({ apiKey: required(env, backend, 'KERNEL_API_KEY') })
+    case 'browser-use':
+      return createBrowserUseProvider({ apiKey: required(env, backend, 'BROWSER_USE_API_KEY') })
+    case 'hyperbrowser':
+      return createHyperbrowserProvider({
+        apiKey: required(env, backend, 'HYPERBROWSER_API_KEY'),
+      })
     default:
-      throw new Error(`Unknown NEU_BROWSER_BACKEND "${backend}". Supported: nap, kernel`)
+      throw new Error(
+        `Unknown NEU_BROWSER_BACKEND "${backend}". Supported: nap, kernel, browser-use, hyperbrowser`,
+      )
   }
 }

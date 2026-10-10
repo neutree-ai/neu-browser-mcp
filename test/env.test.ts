@@ -17,6 +17,18 @@ describe('providerFromEnv', () => {
     )
   })
 
+  it('builds the browser-use and hyperbrowser backends when named', () => {
+    expect(
+      providerFromEnv({ NEU_BROWSER_BACKEND: 'browser-use', BROWSER_USE_API_KEY: 'k' }).name,
+    ).toBe('browser-use')
+    expect(
+      providerFromEnv({ NEU_BROWSER_BACKEND: 'hyperbrowser', HYPERBROWSER_API_KEY: 'k' }).name,
+    ).toBe('hyperbrowser')
+    expect(() => providerFromEnv({ NEU_BROWSER_BACKEND: 'browser-use' })).toThrow(
+      'Backend "browser-use" needs BROWSER_USE_API_KEY',
+    )
+  })
+
   it('names the variable a backend is missing', () => {
     expect(() => providerFromEnv({ NAP_BROWSER_URL: 'https://browser.example.com' })).toThrow(
       'Backend "nap" needs NAP_BROWSER_TOKEN',
@@ -25,7 +37,7 @@ describe('providerFromEnv', () => {
 
   it('rejects a backend it does not know', () => {
     expect(() => providerFromEnv({ ...nap, NEU_BROWSER_BACKEND: 'other' })).toThrow(
-      'Unknown NEU_BROWSER_BACKEND "other". Supported: nap, kernel',
+      'Unknown NEU_BROWSER_BACKEND "other". Supported: nap, kernel, browser-use, hyperbrowser',
     )
   })
 })

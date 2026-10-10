@@ -37,6 +37,8 @@ Each backend declares what it supports, and the tools follow the declaration.
 | --- | --- | --- | --- | --- | --- | --- |
 | `nap` | 1 hour / 24 hours | yes | yes | yes | list, download link | The self-hosted browser service of [Neutree Agent Platform](https://github.com/neutree-ai/agent-platform). |
 | `kernel` | 1 hour idle / 72 hours idle | yes | no | yes | list, read | [Kernel](https://www.kernel.sh) hosted browsers. The timeout counts inactivity, not time since creation. |
+| `browser-use` | 1 hour / 4 hours | yes | yes | yes | no | [Browser Use Cloud](https://browser-use.com) hosted browsers. Up to 10 metadata pairs per browser. |
+| `hyperbrowser` | 1 hour / 12 hours | yes | no | no | no | [Hyperbrowser](https://hyperbrowser.ai) hosted browsers. No metadata, so it cannot be confined to a scope. |
 
 More backends are planned. See [Adding a backend](#adding-a-backend).
 
@@ -75,6 +77,18 @@ Requires Node.js 22 or newer. The server speaks MCP over stdio.
 | Variable | Meaning |
 | --- | --- |
 | `KERNEL_API_KEY` | Kernel API key. Required. |
+
+**`browser-use`**
+
+| Variable | Meaning |
+| --- | --- |
+| `BROWSER_USE_API_KEY` | Browser Use Cloud API key. Required. |
+
+**`hyperbrowser`**
+
+| Variable | Meaning |
+| --- | --- |
+| `HYPERBROWSER_API_KEY` | Hyperbrowser API key. Required. |
 
 ## Use it as a library
 
