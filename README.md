@@ -7,6 +7,10 @@ An MCP server that gives an agent a remote browser: create one, get a CDP URL to
   <a href="CONTRIBUTING.md"><img alt="Contributions welcome" src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg"></a>
 </p>
 
+<p align="center">
+  <img alt="The agent calls neu-browser-mcp, which exposes the same tools across browser backends" src="docs/concept.gif" width="800">
+</p>
+
 ## Why
 
 - **Lifecycle only.** It does not click, type or navigate. The agent drives the browser over CDP with [agent-browser](https://github.com/vercel-labs/agent-browser), Playwright, or any CDP client.
